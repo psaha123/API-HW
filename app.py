@@ -1,14 +1,44 @@
 from flask import Flask, abort, jsonify, request
-
 from inspector import Inspector
 
 app = Flask(__name__)
 
-
 @app.route("/search", methods=["GET"])
 def search():
-    abort(501)
+    # Get query parameters
+    restaurant_name = request.args.get('restaurant_name')
+    cuisine = request.args.get('cuisine')
+    zipcode = request.args.get('zipcode')
+    limit = request.args.get('limit', default=10, type=int)
 
+    # Retrieve inspections
+    inspections = list(Inspector.get_inspections())
+    
+    # Filter results based on query parameters
+    filtered_results = inspections
+
+    if restaurant_name:
+        filtered_results = [ins for ins in filtered_results if restaurant_name.lower() in ins.restaurant_name.lower()]
+    
+    if cuisine:
+        filtered_results = [ins for ins in filtered_results if cuisine.lower() in ins.cuisine.lower()]
+
+    if zipcode:
+        filtered_results = [ins for ins in filtered_results if ins.zipcode == zipcode]  # Exact match for zipcode
+
+    # Sort by restaurant_id
+    filtered_results.sort(key=lambda x: x.restaurant_id)
+
+    # Limit the results
+    limited_results = filtered_results[:limit]
+
+    # Prepare response data
+    response_data = {
+        "data": [ins.to_json() for ins in limited_results]
+    }
+    
+    return jsonify(response_data)
 
 if __name__ == "__main__":
     app.run(host="localhost", debug=True, port=8080)
+
