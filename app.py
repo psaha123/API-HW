@@ -1,4 +1,4 @@
-from flask import Flask, abort, jsonify, request
+from flask import Flask, jsonify, request
 from inspector import Inspector
 
 app = Flask(__name__)
@@ -12,8 +12,11 @@ def search():
     limit = request.args.get('limit', default=10, type=int)
 
     # Retrieve inspections
-    inspections = list(Inspector.get_inspections())
-    
+    try:
+        inspections = list(Inspector.get_inspections())
+    except Exception as e:
+        return jsonify({"error": "Failed to retrieve inspections", "details": str(e)}), 500
+
     # Filter results based on query parameters
     filtered_results = inspections
 
@@ -33,6 +36,9 @@ def search():
     limited_results = filtered_results[:limit]
 
     # Prepare response data
+    if not limited_results:
+        return jsonify({"data": []}), 404  # No results found
+
     response_data = {
         "data": [ins.to_json() for ins in limited_results]
     }
@@ -41,4 +47,3 @@ def search():
 
 if __name__ == "__main__":
     app.run(host="localhost", debug=True, port=8080)
-
