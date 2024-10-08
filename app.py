@@ -1,5 +1,4 @@
-from flask import Flask, jsonify, request
-
+from flask import Flask, jsonify, request, abort
 from inspector import Inspector
 
 app = Flask(__name__)
@@ -33,13 +32,9 @@ def search():
     limited_results = filtered_results[:limit]
 
     if not limited_results:
-        return jsonify({"data": []}), 404  
+        return jsonify({"data": []}), 404
 
-    response_data = {
-        "data": [ins.to_json() for ins in limited_results]
-    }
-    
-    return jsonify(response_data)
+    return jsonify(format_response(limited_results))
 
 if __name__ == "__main__":
     app.run(host="localhost", debug=True, port=8080)
