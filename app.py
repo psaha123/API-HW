@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, request
+
 from inspector import Inspector
 
 app = Flask(__name__)
-
 @app.route("/search", methods=["GET"])
+
 def search():
+    if not request.args:
+        abort(501)
+        
     restaurant_name = request.args.get('restaurant_name')
     cuisine = request.args.get('cuisine')
     zipcode = request.args.get('zipcode')
@@ -23,13 +27,13 @@ def search():
         filtered_results = [ins for ins in filtered_results if cuisine.lower() in ins.cuisine.lower()]
 
     if zipcode:
-        filtered_results = [ins for ins in filtered_results if ins.zipcode == zipcode]  # Exact match for zipcode
+        filtered_results = [ins for ins in filtered_results if ins.zipcode == zipcode]  
 
     filtered_results.sort(key=lambda x: x.restaurant_id)
     limited_results = filtered_results[:limit]
 
     if not limited_results:
-        return jsonify({"data": []}), 404  # No results found
+        return jsonify({"data": []}), 404  
 
     response_data = {
         "data": [ins.to_json() for ins in limited_results]
