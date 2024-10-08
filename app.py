@@ -10,8 +10,8 @@ def search():
         abort(501)
         
     restaurant_name = request.args.get('restaurant_name')
-    cuisine = request.args.get('cuisine')
     zipcode = request.args.get('zipcode')
+    cuisine = request.args.get('cuisine')
     limit = request.args.get('limit', default=10, type=int)
 
     try:
@@ -22,12 +22,12 @@ def search():
     filtered_results = inspections
     if restaurant_name:
         filtered_results = [ins for ins in filtered_results if restaurant_name.lower() in ins.restaurant_name.lower()]
+
+    if zipcode:
+        filtered_results = [ins for ins in filtered_results if ins.zipcode == zipcode]
     
     if cuisine:
         filtered_results = [ins for ins in filtered_results if cuisine.lower() in ins.cuisine.lower()]
-
-    if zipcode:
-        filtered_results = [ins for ins in filtered_results if ins.zipcode == zipcode]  
 
     filtered_results.sort(key=lambda x: x.restaurant_id)
     limited_results = filtered_results[:limit]
